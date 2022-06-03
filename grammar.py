@@ -47,7 +47,7 @@ class Grammar(object):
     @staticmethod
     def load_grammar(fpath):
         """
-        Loads the grammar from file (from the )
+        Loads the grammar from file
         """
 
         grammar = Grammar()
@@ -87,9 +87,6 @@ class Grammar(object):
     def get_rules(self, non_terminal):
         return self.rules[non_terminal]
 
+    # Checks, whether the given symbol is terminal
     def is_terminal(self, sym):
-        """
-        Checks is the given symbol is terminal.
-        """
-
         return len(self.rules[sym]) == 0

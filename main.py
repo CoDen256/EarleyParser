@@ -65,13 +65,44 @@ class EarleyParser:
         for i, chart in enumerate(charts):
             for state in chart.states:
                 if not state.is_complete():
-                    if self.grammar.is_tag(state.next_token()):
+                    if self.grammar.is_terminal(state.next_token()):
                         self.scanner(charts, state, i)
                     else:
                         self.predictor(charts, state, i)
                 else:
                     self.completer(charts, state, i)
         return charts
+
+    #   charts[pos]: State(A -> ...*B..., origin)           # state
+    # + charts[pos]: State(B -> *......., pos)              # new_state
+    def predictor(self, charts, state, pos):
+        token = state.next_token() # token to the right of the dot - non terminal
+        for rule in self.grammar.get_rules(token):
+            new_state = State(rule, dot=0, origin=pos, action="Predict")
+            charts[pos].add_state(new_state)
+
+
+    #   charts[pos]:   State(A -> ...*b..., origin)         # state
+    # + charts[pos+1]: State(A -> ...b*..., origin)         # new_state
+    def scanner(self, charts, state, pos): 
+        token = state.next_token()              # token to the right of the dot - terminal
+
+        if pos >= len(self.words): return       # if last chart, then skip
+
+        word = self.words[pos]                  # current word to scan
+        if word == token:
+            new_state = State(state.rule, dot=state.dot + 1, origin=state.origin, action="Scan")
+            charts[pos + 1].add_state(new_state)
+
+
+    #   charts[origin]  State(S -> ...*A..., prev_origin)       # prev_state
+    #   charts[pos]:    State(A -> .......*, origin)            # state
+    # + charts[pos]:    State(S -> ...A*..., prev_origin)       # new_state
+    def completer(self, charts, state, pos):
+        for prev_state in charts[state.origin].states:
+            if prev_state.next_token() == state.rule.left_side:
+                new_state = State(prev_state.rule, dot=prev_state.dot + 1, origin=prev_state.origin, action="Complete")
+                charts[pos].add_state(new_state)
 
     def create_charts(self, num):
         start_state = State(Rule(State.START, [self.grammar.start]), action="Start")
@@ -84,36 +115,6 @@ class EarleyParser:
             charts.append(Chart())
 
         return charts
-        
-    def is_word_in_rules(self, word, rules):
-        for rule in rules:
-            if word in rule.right_side:
-                return True
-        return False
-
-    def predictor(self, charts, state, position):
-        token = state.next_token() # token to the right of the dot
-        for rule in self.grammar.get_rules(token):
-            new_state = State(rule, dot=0, origin=position, action="Predict")
-            charts[position].add_state(new_state)
-
-    def scanner(self, charts, state, position):  # dot near tag, e.g. N -> * Det Noun, where 'Det' -> det
-        token = state.next_token() # token to the right of the dot
-        
-        if position < len(self.words): # if last chart, then skip
-            word = self.words[position] # current word to scan
-            rules = self.grammar.get_rules(token)
-            if self.is_word_in_rules(word, rules):
-                new_rule = Rule(token, [word])  # 'Det' -> det
-                new_state = State(new_rule, dot=1, origin=state.origin, action="Scan")
-                charts[position + 1].add_state(new_state)
-
-    def completer(self, charts, state, position):
-        for prev_state in charts[state.origin].states:
-            if prev_state.next_token() == state.rule.left_side:
-                new_state = State(prev_state.rule, dot=(prev_state.dot + 1), origin=prev_state.origin, action="Complete")
-                charts[position].add_state(new_state)
-
 
 def main():
     ## PROCESS INPUT
