@@ -1,4 +1,3 @@
-from nltk.tree import Tree
 import string
 import sys
 
@@ -10,16 +9,15 @@ def normalize(sentence):
 
 
 def get_helper(grammar, state):
-    if grammar.is_tag(state.rule.lhs):
-        return Tree(state.rule.lhs, [state.rule.rhs[0]])
+    if not grammar.is_terminal(state.rule.left_side):
+        return state.rule.left_side
 
-    return Tree(state.rule.lhs,
-                [get_helper(grammar, s) for s in state.back_pointers])
+    return Tree(state.rule.left_side, [get_helper(grammar, s) for s in state.back_pointers])
 
 
 def convert_to_tree(parser):
     for state in parser.chart[-1]:
-        if state.is_complete() and state.rule.lhs == parser.grammar.start and \
+        if state.is_complete() and state.rule.left_side == parser.grammar.start and \
                 state.sent_pos == 0 and state.chart_pos == len(parser.words):
             return get_helper(parser.grammar, state)
 

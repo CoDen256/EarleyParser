@@ -1,15 +1,16 @@
 from grammar import Grammar, Rule
 from utils import convert_to_tree, display, normalize, load
-
+from nltk.tree import Tree
 
 class State:
     START = "<START>"
 
-    def __init__(self, rule, dot=0, origin=0, action=""):
+    def __init__(self, rule, dot=0, origin=0, action="", tree=None):
         self.rule = rule
         self.dot = dot
         self.origin = origin
         self.action = action
+        self.tree = tree
 
     def __eq__(self, other):
         return self.rule == other.rule and self.dot == other.dot and self.origin == other.origin
@@ -86,7 +87,15 @@ class EarleyParser:
     def completer(self, charts, state, pos):
         for prev_state in charts[state.origin].states:
             if prev_state.next_token() == state.rule.left_side:
-                new_state = State(prev_state.rule, dot=prev_state.dot + 1, origin=prev_state.origin, action="Complete")
+                new_state = State(prev_state.rule, dot=prev_state.dot + 1, origin=prev_state.origin, 
+                                 action="Complete", tree=
+                                 Tree(prev_state.left_side, [
+                                        Tree(state.left_side, [
+                                            Tree(), 
+                                            Tree()
+                                            ])
+                                     ])
+                                     )
                 charts[pos].add_state(new_state)
 
     def create_charts(self, num):
@@ -120,8 +129,7 @@ def main():
             print("{0: <50} {1} ".format(str(state), " ".join(sentence.split()[i:])))
 
     ## build tree and visualize
-    # tree = convert_to_tree(parser)
-    # display(tree, sentence, render=True)
+    display(charts[-1].states[-1].tree, sentence, render=True)
 
 
 # startpoint in python
