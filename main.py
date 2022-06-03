@@ -25,18 +25,9 @@ class State:
         return self.__str__()
 
     def __str__(self):
-        def str_helper(state):
-            return (
-                "("
-                + state.rule.left_side
-                + " -> "
-                + " ".join(
-                    state.rule.right_side[: state.dot] + ["*"] + state.rule.right_side[state.dot :]
-                )
-                + (", %d)" % (state.origin))
-            )
-
-        return str_helper(self)
+        right_side = self.rule.right_side[: self.dot] + ['*'] + self.rule.right_side[self.dot :]
+        rule = f"({self.rule.left_side} -> {' '.join(right_side)}, {self.origin})"
+        return "{0: <10} {1: <40}".format(self.action, rule)
 
     def next_token(self):
         if self.dot < len(self.rule.right_side):
@@ -51,7 +42,8 @@ class Chart:
         self.states = []
 
     def add_state(self, state):
-        self.states.append(state)
+        if state not in self.states:
+            self.states.append(state)
 
 
 class EarleyParser:
@@ -133,11 +125,7 @@ def main():
         print("-" * 50, f"Chart #{i}", "-"*50)
         for state in chart.states:
             # print (10 spaces + state.action) (40 spaces + state) (slice sentence from i-position till end)
-            print(
-                "{0: <10} {1: <40} {2} ".format(
-                    state.action, str(state), " ".join(sentence.split()[i:])
-                )
-            )
+            print("{0: <50} {1} ".format(str(state), " ".join(sentence.split()[i:])))
 
     ## build tree and visualize
     # tree = convert_to_tree(parser)
