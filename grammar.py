@@ -20,12 +20,6 @@ class Rule(object):
 
         return False
 
-    def __getitem__(self, i):
-        return self.right_side[i]
-
-    def __len__(self):
-        return len(self.right_side)
-
     def __repr__(self):
         return self.__str__()
 
@@ -90,7 +84,7 @@ class Grammar(object):
         return "\n".join(s)
 
     # Returns the rules for a given Non-terminal.
-    def __getitem__(self, non_terminal):
+    def get_rules(self, non_terminal):
         return self.rules[non_terminal]
 
     def is_terminal(self, sym):
@@ -99,13 +93,3 @@ class Grammar(object):
         """
 
         return len(self.rules[sym]) == 0
-
-    def is_tag(self, sym):
-        """
-        Checks whether the given symbol is a tag, i.e. a non-terminal with rules
-        to solely terminals.
-        """
-
-        return not self.is_terminal(sym) and all(
-            self.is_terminal(s) for r in self.rules[sym] for s in r.right_side
-        )
