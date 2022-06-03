@@ -1,0 +1,11 @@
+% start S
+S -> NP VP
+
+NP -> Det Noun
+
+VP -> Verb | Verb NP
+
+
+Det -> der | die | das
+Noun -> mann | frau
+Verb -> sieht
