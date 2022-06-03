@@ -6,31 +6,31 @@ class Rule(object):
     Represents a CFG rule.
     """
 
-    def __init__(self, lhs, rhs):
-        # Represents the rule 'lhs -> rhs', where lhs is a non-terminal and
-        # rhs is a list of non-terminals and terminals.
-        self.lhs, self.rhs = lhs, rhs
-
-    def __contains__(self, symbol):
-        return symbol in self.rhs
+    def __init__(self, left_side, right_side):
+        # Represents the rule 'left_side -> right_side', where left_side is a non-terminal and
+        # right_side is a list of non-terminals and terminals.
+        self.left_side, self.right_side = left_side, right_side
 
     def __eq__(self, other):
         if type(other) is Rule:
-            return self.lhs == other.lhs and self.rhs == other.rhs
+            return (
+                self.left_side == other.left_side
+                and self.right_side == other.right_side
+            )
 
         return False
 
     def __getitem__(self, i):
-        return self.rhs[i]
+        return self.right_side[i]
 
     def __len__(self):
-        return len(self.rhs)
+        return len(self.right_side)
 
     def __repr__(self):
         return self.__str__()
 
     def __str__(self):
-        return self.lhs + ' -> ' + ' '.join(self.rhs)
+        return self.left_side + " -> " + " ".join(self.right_side)
 
 
 class Grammar(object):
@@ -48,7 +48,7 @@ class Grammar(object):
         Adds the given rule to the grammar.
         """
 
-        self.rules[rule.lhs].append(rule)
+        self.rules[rule.left_side].append(rule)
 
     @staticmethod
     def load_grammar(fpath):
@@ -68,10 +68,10 @@ class Grammar(object):
                 if line.startswith("%"):
                     grammar.start = line.split("start")[1].strip()
                     continue
-                entries = line.split('->')
-                lhs = entries[0].strip()
-                for rhs in entries[1].split('|'):
-                    grammar.add(Rule(lhs, rhs.strip().split()))
+                entries = line.split("->")
+                left_side = entries[0].strip()
+                for right_side in entries[1].split("|"):
+                    grammar.add(Rule(left_side, right_side.strip().split()))
 
         return grammar
 
@@ -87,7 +87,7 @@ class Grammar(object):
 
             s += [str(r) for r in rule_list]
 
-        return '\n'.join(s)
+        return "\n".join(s)
 
     # Returns the rules for a given Non-terminal.
     def __getitem__(self, non_terminal):
@@ -106,5 +106,6 @@ class Grammar(object):
         to solely terminals.
         """
 
-        return not self.is_terminal(sym) and \
-               all(self.is_terminal(s) for r in self.rules[sym] for s in r.rhs)
+        return not self.is_terminal(sym) and all(
+            self.is_terminal(s) for r in self.rules[sym] for s in r.right_side
+        )

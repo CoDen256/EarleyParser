@@ -2,7 +2,7 @@ from nltk.tree import Tree
 import string
 import sys
 
-# remove 
+# remove punctuation
 def normalize(sentence):
     for p in string.punctuation:
         sentence = sentence.replace(p, '')
@@ -44,3 +44,8 @@ def draw(result):
             sys.exit()
 
         sys.exit()
+
+
+def load(filename):
+    with open(filename, "r", encoding="utf-8") as f:
+        return f.read()
