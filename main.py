@@ -12,14 +12,7 @@ class State:
         self.action = action
 
     def __eq__(self, other):
-        if type(other) is State:
-            return (
-                self.rule == other.rule
-                and self.dot == other.dot
-                and self.origin == other.origin
-            )
-
-        return False
+        return self.rule == other.rule and self.dot == other.dot and self.origin == other.origin
 
     def __repr__(self):
         return self.__str__()
@@ -115,8 +108,7 @@ def main():
 
     ## PARSE INPUT
     parser = EarleyParser(sentence, grammar)
-    charts = parser.parse()
-     # parse = из цельной строки в структуру из соеденнных елементов
+    charts = parser.parse() # parse = из цельной строки в структуру из соеденнных елементов
 
     ## PRINT RESULT
     # parser.chart - list
