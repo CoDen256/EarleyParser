@@ -1,16 +1,15 @@
 from grammar import Grammar, Rule
-from utils import convert_to_tree, display, normalize, load
+from utils import display, normalize, load
 from nltk.tree import Tree
 
 class State:
     START = "<START>"
 
-    def __init__(self, rule, dot=0, origin=0, action="", tree=None):
+    def __init__(self, rule, dot=0, origin=0, action=""):
         self.rule = rule
         self.dot = dot
         self.origin = origin
         self.action = action
-        self.tree = tree
 
     def __eq__(self, other):
         return self.rule == other.rule and self.dot == other.dot and self.origin == other.origin
@@ -137,7 +136,6 @@ def main():
     for i, chart in enumerate(charts):
         print("-" * 50, f"Chart #{i}", "-"*50)
         for state in chart.states:
-            if (state.action != "Complete"): continue
             # print (10 spaces + state.action) (40 spaces + state) (slice sentence from i-position till end)
             print("{0: <50} {1} ".format(str(state), " ".join(sentence.split()[i:])))
 
@@ -147,8 +145,8 @@ def main():
 
 def sub_tree(symbol, charts, grammar):
     if (grammar.is_terminal(symbol) and symbol != State.START): return symbol
-    for chart in charts:
-        for state in chart.states:
+    for chart in reversed(charts):
+        for state in reversed(chart.states):
             if (symbol == state.rule.left_side):
                 return Tree(state.rule.left_side, [sub_tree(child, charts, grammar) for child in state.rule.right_side])
 
