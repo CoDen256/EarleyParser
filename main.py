@@ -137,12 +137,20 @@ def main():
     for i, chart in enumerate(charts):
         print("-" * 50, f"Chart #{i}", "-"*50)
         for state in chart.states:
+            if (state.action != "Complete"): continue
             # print (10 spaces + state.action) (40 spaces + state) (slice sentence from i-position till end)
             print("{0: <50} {1} ".format(str(state), " ".join(sentence.split()[i:])))
 
     ## build tree and visualize
-    #display(charts[-1].states[-1].tree, sentence, render=True)
+    tree = sub_tree(State.START, charts, grammar)
+    display(tree, sentence, render=True)
 
+def sub_tree(symbol, charts, grammar):
+    if (grammar.is_terminal(symbol) and symbol != State.START): return symbol
+    for chart in charts:
+        for state in chart.states:
+            if (symbol == state.rule.left_side):
+                return Tree(state.rule.left_side, [sub_tree(child, charts, grammar) for child in state.rule.right_side])
 
 # startpoint in python
 if __name__ == "__main__":
