@@ -23,7 +23,7 @@ class State:
         rule = f"({self.rule.left_side} -> {' '.join(right_side)}, {self.origin})"
         return "{0: <10} {1: <40}".format(self.action, rule)
 
-    def next_token(self):
+    def token_by_current_dot(self):
         if self.dot < len(self.rule.right_side):
             return self.rule.right_side[self.dot]
 
@@ -46,65 +46,77 @@ class EarleyParser:
         self.grammar = grammar
 
     def parse(self):
+        # initialize all charts
         charts = self.create_charts(len(self.words))
 
         for i, chart in enumerate(charts):
             for state in chart.states:
-                if not state.is_complete():
-                    if self.grammar.is_terminal(state.next_token()):
-                        self.scanner(charts, state, i)
-                    else:
-                        self.predictor(charts, state, i)
-                else:
-                    self.completer(charts, state, i)
+                if self.check_predict(state):
+                    self.predict(charts, i, state)
+                if self.check_complete(state):
+                    self.complete(charts, i, state)
+                if self.check_scanner(state):
+                    self.scanner(charts, i, state)
         return charts
 
-    #   charts[pos]: State(A -> ...*B..., origin)           # state
-    # + charts[pos]: State(B -> *......., pos)              # new_state
-    def predictor(self, charts, state, pos):
-        token = state.next_token() # token to the right of the dot - non terminal
-        for rule in self.grammar.get_rules(token):
-            new_state = State(rule, dot=0, origin=pos, action="Predict")
-            charts[pos].add_state(new_state)
+    # right token is non terminal
+    def predict(self, charts, i, state):
+        token = state.token_by_current_dot()
+        rules = self.grammar.get_rules(token) # [Rule(token, ...), Rule(token, ...)]
+        for rule in rules:
+            state = State(rule=rule, dot=0, origin=i, action="Predict")
+            chart = charts[i]
+            chart.add_state(state)
 
+    # right token is terminal
+    def scanner(self, charts, i, state):
+        token = state.token_by_current_dot()
+        word = self.words[i]
+        if (token == word):
+            new_state = State(state.rule, dot=state.dot+1,origin=state.origin, action="Scan")
+            charts[i+1].add_state(new_state)
 
-    #   charts[pos]:   State(A -> ...*b..., origin)         # state
-    # + charts[pos+1]: State(A -> ...b*..., origin)         # new_state
-    def scanner(self, charts, state, pos): 
-        token = state.next_token()              # token to the right of the dot - terminal
+    # dot at the end
+    def complete(self, charts, i, state):
+        chart = charts[state.origin]
+        left_side = state.rule.left_side
+        for prev_state in chart.states:
+            if (self.check_left_side_in_right_side(prev_state, left_side)):
+                new_state = State(prev_state.rule, dot=prev_state.dot+1,
+                            origin=prev_state.origin,
+                            action="Complete")
+                current_chart = charts[i]
+                current_chart.add_state(new_state)
 
-        if pos >= len(self.words): return       # if last chart, then skip
+    # true, if dot in the left from token, token==left_side
+    def check_left_side_in_right_side(self, prev_state, left_side):
+        return prev_state.token_by_current_dot() == left_side
 
-        word = self.words[pos]                  # current word to scan
-        if word == token:
-            new_state = State(state.rule, dot=state.dot + 1, origin=state.origin, action="Scan")
-            charts[pos + 1].add_state(new_state)
+    def check_predict(self, state): # True/False
+        # state is not complete
+        # right token from dot - is non terminal
+        return not state.is_complete() and not self.grammar.is_terminal(state.token_by_current_dot())
 
-
-    #   charts[origin]  State(S -> ...*A..., prev_origin)       # prev_state
-    #   charts[pos]:    State(A -> .......*, origin)            # state
-    # + charts[pos]:    State(S -> ...A*..., prev_origin)       # new_state
-    def completer(self, charts, state, pos):
-        for prev_state in charts[state.origin].states:
-            if prev_state.next_token() == state.rule.left_side:
-                new_state = State(prev_state.rule, dot=prev_state.dot + 1, origin=prev_state.origin, 
-                                 action="Complete", tree=
-                                 Tree(prev_state.left_side, [
-                                        Tree(state.left_side, [
-                                            Tree(), 
-                                            Tree()
-                                            ])
-                                     ])
-                                     )
-                charts[pos].add_state(new_state)
+    def check_scanner(self, state): # True/False
+        # state is not complete
+        # right token from dot - is terminal
+        return not state.is_complete() and self.grammar.is_terminal(state.token_by_current_dot())
+    
+    def check_complete(self, state): # True/False
+        # state is complete
+        return state.is_complete()
 
     def create_charts(self, num):
-        start_state = State(Rule(State.START, [self.grammar.start]), action="Start")
-        start_chart = Chart()
-        start_chart.add_state(start_state)  # Add start state to start chart
+        # creation of fake chart
+        fake_rule = Rule(left_side=State.START, right_side=[self.grammar.start])
+        fake_state = State(fake_rule, dot=0, origin=0, action="START")
+        fake_chart = Chart()
+        fake_chart.add_state(fake_state)
 
         charts = []
-        charts.append(start_chart)  # Add start chart to charts
+        charts.append(fake_chart)
+
+        # creation of real charts
         for i in range(num):
             charts.append(Chart())
 
@@ -129,7 +141,7 @@ def main():
             print("{0: <50} {1} ".format(str(state), " ".join(sentence.split()[i:])))
 
     ## build tree and visualize
-    display(charts[-1].states[-1].tree, sentence, render=True)
+    #display(charts[-1].states[-1].tree, sentence, render=True)
 
 
 # startpoint in python
