@@ -22,12 +22,12 @@ from nltk.tree import Tree
 class State:
     START = "<START>"
 
-    def __init__(self, rule, dot=0, origin=0, action="", parents = []):
+    def __init__(self, rule, dot=0, origin=0, action="", completed_by = []):
         self.rule = rule
         self.dot = dot
         self.origin = origin # position of the chart where it comes from - correlates with sentence position
         self.action = action
-        self.parents = parents    # states that completed this state
+        self.completed_by = completed_by    # states that completed this state
 
     def __eq__(self, other):
         return self.rule == other.rule and self.dot == other.dot and self.origin == other.origin
@@ -83,7 +83,7 @@ class EarleyParser:
         token = state.token_by_current_dot()
         rules = self.grammar.get_rules(token) # [Rule(token, ...), Rule(token, ...)]
         for rule in rules:
-            new_state = State(rule=rule, dot=0, origin=i, action="Predict")
+            new_state = State(rule=rule, dot=0, origin=i, action="Predicted")
             chart = charts[i]
             chart.add_state(new_state)
 
@@ -95,7 +95,7 @@ class EarleyParser:
         if (i >= len(self.words)): return
         word = self.words[i]
         if (token == word):
-            new_state = State(state.rule, dot=state.dot+1,origin=state.origin, action="Scan")
+            new_state = State(state.rule, dot=state.dot+1,origin=state.origin, action="Scanned")
             charts[i+1].add_state(new_state)
 
     #   charts[origin]  State(S -> ...*A..., prev_origin)       # origin_state 
@@ -109,8 +109,8 @@ class EarleyParser:
             if (self.check_left_side_in_right_side(origin_state, left_side)):
                 new_state = State(origin_state.rule, dot=origin_state.dot+1,
                             origin=origin_state.origin,
-                            action="Complete",
-                            parents=origin_state.parents + [state]
+                            action="Completed",
+                            completed_by=origin_state.completed_by + [state]
                             )
                 current_chart = charts[i]
                 current_chart.add_state(new_state)
@@ -136,7 +136,7 @@ class EarleyParser:
     def create_charts(self, num):
         # creation of fake chart
         fake_rule = Rule(left_side=State.START, right_side=[self.grammar.start])
-        fake_state = State(fake_rule, dot=0, origin=0, action="START")
+        fake_state = State(fake_rule, dot=0, origin=0, action="Started")
         fake_chart = Chart()
         fake_chart.add_state(fake_state)
 
