@@ -1,11 +1,15 @@
 % start S
-S -> NP VP
+S -> SENTENCE | SENTENCE Con S
+SENTENCE -> NP VP
 
-NP -> Det Noun
+NP -> Det AN 
+
+AN -> Noun | Adj AN
 
 VP -> Verb | Verb NP
 
-
-Det -> der | die | das
-Noun -> mann | frau
-Verb -> sieht
+Con -> und | oder | weil | deshalb | aber
+Adj -> schoen | gut | gross | klein | lustig | schlecht | hungrig | schnell
+Det -> der | die | das 
+Noun -> mann | frau | katze | hund | kater | hundin | schlange
+Verb -> sieht | hoert | beisst | weckt | fuettert | liebt | geht

@@ -70,6 +70,7 @@ class EarleyParser:
     # right token is terminal
     def scanner(self, charts, i, state):
         token = state.token_by_current_dot()
+        if (i >= len(self.words)): return
         word = self.words[i]
         if (token == word):
             new_state = State(state.rule, dot=state.dot+1,origin=state.origin, action="Scan")
@@ -143,13 +144,25 @@ def main():
     tree = sub_tree(State.START, charts, grammar)
     display(tree, sentence, render=True)
 
-def sub_tree(symbol, charts, grammar):
-    if (grammar.is_terminal(symbol) and symbol != State.START): return symbol
-    for chart in reversed(charts):
-        for state in reversed(chart.states):
-            if (symbol == state.rule.left_side):
-                return Tree(state.rule.left_side, [sub_tree(child, charts, grammar) for child in state.rule.right_side])
+# def sub_tree(start_symbol, charts, grammar):
+#     start = Tree(symbol, [])
+#     trees, stack = [start], [start_symbol]
 
+#     while (stack):
+#         symbol = stack.pop()
+#         if (grammar.is_terminal(symbol) and symbol != State.START): 
+#             tree = Tree(tree.node, tree.children+[symbol])
+#         for chart in reversed(charts):
+#             for state in reversed(chart.states):
+#                 if (symbol == state.rule.left_side):
+#                     tree = trees.pop()
+#                     for child in state.rule.right_side:
+#                         stack.append(child)
+#                         new_tree = Tree()
+#                         #tree = Tree(tree.)
+#                         trees.append(new_tree)
+
+#     return result
 # startpoint in python
 if __name__ == "__main__":
     main()
