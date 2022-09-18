@@ -2,6 +2,23 @@ from grammar import Grammar, Rule
 from utils import display, normalize, load
 from nltk.tree import Tree
 
+# State:  (S -> NP * VP, 12)
+#   - rule:         Rule(S, [NP, VP]), left_side = S, right_side = [NP, VP]
+#   - dot(*):       1
+#   - origin:       12
+
+# Chart - list of states [State1, State2, State3....]
+#                        [(S -> NP * VP, 12), (NP -> Det N *) ....]
+
+# charts - list of charts
+# 0,1,2 - position of the chart (also `i` or `pos`)
+# [
+#   [0][(S -> NP * VP, 12), (NP -> Det N *) ....]                    
+#   [1][(S -> NP * VP, 12), (NP -> Det N *) ....]
+#   [2][(S -> NP * VP, 12), (NP -> Det N *) ....]
+#   ...
+# ]
+
 class State:
     START = "<START>"
 
@@ -58,15 +75,19 @@ class EarleyParser:
                     self.scanner(charts, i, state)
         return charts
 
+    #   charts[pos]: State(A -> ...*B..., origin)           # state (current)
+    # + charts[pos]: State(B -> *......., pos)              # new_state
     # right token is non terminal
     def predict(self, charts, i, state):
         token = state.token_by_current_dot()
         rules = self.grammar.get_rules(token) # [Rule(token, ...), Rule(token, ...)]
         for rule in rules:
-            state = State(rule=rule, dot=0, origin=i, action="Predict")
+            new_state = State(rule=rule, dot=0, origin=i, action="Predict")
             chart = charts[i]
-            chart.add_state(state)
+            chart.add_state(new_state)
 
+    #   charts[pos]:   State(A -> ...*b..., origin)         # state (current)
+    # + charts[pos+1]: State(A -> ...b*..., origin)         # new_state
     # right token is terminal
     def scanner(self, charts, i, state):
         token = state.token_by_current_dot()
@@ -76,21 +97,24 @@ class EarleyParser:
             new_state = State(state.rule, dot=state.dot+1,origin=state.origin, action="Scan")
             charts[i+1].add_state(new_state)
 
+    #   charts[origin]  State(S -> ...*A..., prev_origin)       # origin_state 
+    #   charts[pos]:    State(A -> .......*, origin)            # state (current)
+    # + charts[pos]:    State(S -> ...A*..., prev_origin)       # new_state
     # dot at the end
     def complete(self, charts, i, state):
         chart = charts[state.origin]
         left_side = state.rule.left_side
-        for prev_state in chart.states:
-            if (self.check_left_side_in_right_side(prev_state, left_side)):
-                new_state = State(prev_state.rule, dot=prev_state.dot+1,
-                            origin=prev_state.origin,
+        for origin_state in chart.states:
+            if (self.check_left_side_in_right_side(origin_state, left_side)):
+                new_state = State(origin_state.rule, dot=origin_state.dot+1,
+                            origin=origin_state.origin,
                             action="Complete")
                 current_chart = charts[i]
                 current_chart.add_state(new_state)
 
     # true, if dot in the left from token, token==left_side
-    def check_left_side_in_right_side(self, prev_state, left_side):
-        return prev_state.token_by_current_dot() == left_side
+    def check_left_side_in_right_side(self, origin_state, left_side):
+        return origin_state.token_by_current_dot() == left_side
 
     def check_predict(self, state): # True/False
         # state is not complete

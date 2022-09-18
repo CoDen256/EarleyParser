@@ -1,10 +1,33 @@
 from collections import defaultdict
 
 
-class Rule(object):
-    """
-    Represents a CFG rule.
-    """
+# non-terminals:    {A, B, C}
+# terminals:        {a, b, c}
+# tokens:           {a, A, b, B, c, C} = non-terminal U terminal
+
+# Rule:
+# A -> C B d:
+#   left_side:      A
+#   right_side:     [C, B, d] 
+
+# Grammar:
+# {
+#   left_side: [Rule(left_side, right_side_1), Rule(left_side, right_side_2)...]
+#   ...
+# }
+# Example for Rules 
+# - A -> A B d
+# - A -> B d
+# - B -> d
+# Grammar: 
+# {
+#   "A" : [Rule("A", ["A", "B", "d"]), Rule("A", ["B", "d"])]
+#   "B" : [Rule("B", ["d"])]
+#   "d" : [] - terminal
+# }
+
+class Rule:
+    # Represents a Context free Grammar (CFG) rule
 
     def __init__(self, left_side, right_side):
         # Represents the rule 'left_side -> right_side', where left_side is a non-terminal and
@@ -12,13 +35,7 @@ class Rule(object):
         self.left_side, self.right_side = left_side, right_side
 
     def __eq__(self, other):
-        if type(other) is Rule:
-            return (
-                self.left_side == other.left_side
-                and self.right_side == other.right_side
-            )
-
-        return False
+        return type(other) is Rule and self.left_side == other.left_side and self.right_side == other.right_side
 
     def __repr__(self):
         return self.__str__()
@@ -27,32 +44,26 @@ class Rule(object):
         return self.left_side + " -> " + " ".join(self.right_side)
 
 
-class Grammar(object):
-    """
-    Represents a CFG.
-    """
+class Grammar:
+    # Represents a context free grammar (CFG)
 
     def __init__(self):
-        # The rules are represented as a dictionary from L.H.S to R.H.S.
+        # The rules are represented as a dictionary from left_side to _right_side
         self.rules = defaultdict(list)
         self.start = None
 
     def add(self, rule):
-        """
-        Adds the given rule to the grammar.
-        """
+        # Adds the rule to the grammar
 
         self.rules[rule.left_side].append(rule)
 
     @staticmethod
-    def load_grammar(fpath):
-        """
-        Loads the grammar from file
-        """
+    def load_grammar(path):
+        # Reads grammar from the given path
 
         grammar = Grammar()
 
-        with open(fpath) as f:
+        with open(path) as f:
             for line in f:
                 line = line.strip()
 
@@ -87,6 +98,6 @@ class Grammar(object):
     def get_rules(self, non_terminal):
         return self.rules[non_terminal]
 
-    # Checks, whether the given symbol is terminal
-    def is_terminal(self, sym):
-        return len(self.rules[sym]) == 0
+    # Checks, whether the given token is terminal
+    def is_terminal(self, token):
+        return len(self.rules[token]) == 0
