@@ -22,11 +22,12 @@ from nltk.tree import Tree
 class State:
     START = "<START>"
 
-    def __init__(self, rule, dot=0, origin=0, action=""):
+    def __init__(self, rule, dot=0, origin=0, action="", parents = []):
         self.rule = rule
         self.dot = dot
-        self.origin = origin #position of the chart where it comes from
+        self.origin = origin # position of the chart where it comes from - correlates with sentence position
         self.action = action
+        self.parents = parents    # states that completed this state
 
     def __eq__(self, other):
         return self.rule == other.rule and self.dot == other.dot and self.origin == other.origin
@@ -108,7 +109,9 @@ class EarleyParser:
             if (self.check_left_side_in_right_side(origin_state, left_side)):
                 new_state = State(origin_state.rule, dot=origin_state.dot+1,
                             origin=origin_state.origin,
-                            action="Complete")
+                            action="Complete",
+                            parents=origin_state.parents + [state]
+                            )
                 current_chart = charts[i]
                 current_chart.add_state(new_state)
 
@@ -164,7 +167,7 @@ def main():
             # print (10 spaces + state.action) (40 spaces + state) (slice sentence from i-position till end)
             print("{0: <50} {1} ".format(str(state), " ".join(sentence.split()[i:])))
 
-    ## build tree and visualize
+    ## build tree and visualize    
     tree = build_tree(State.START, charts, grammar)
     display(tree, sentence, render=True)
 
