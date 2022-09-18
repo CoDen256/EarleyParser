@@ -5,12 +5,12 @@ from collections import defaultdict
 # terminals:        {a, b, c}
 # tokens:           {a, A, b, B, c, C} = non-terminal U terminal
 
-# Rule:
+# `Rule`:
 # A -> C B d:
 #   left_side:      A
 #   right_side:     [C, B, d] 
 
-# Grammar:
+# `Grammar`:
 # {
 #   left_side: [Rule(left_side, right_side_1), Rule(left_side, right_side_2)...]
 #   ...

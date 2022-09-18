@@ -2,20 +2,20 @@ from grammar import Grammar, Rule
 from utils import display, normalize, load
 from nltk.tree import Tree
 
-# State:  (S -> NP * VP, 12)
-#   - rule:         Rule(S, [NP, VP]), left_side = S, right_side = [NP, VP]
-#   - dot(*):       1
-#   - origin:       12
+# `State`:  (S -> NP * VP, 12)
+#   - rule:     Rule(S, [NP, VP]), left_side = S, right_side = [NP, VP]                                            
+#   - dot(*):   1       - position of the dot(*) within the rule
+#   - origin :  12      - position of the chart where it comes from
 
-# Chart - list of states [State1, State2, State3....]
-#                        [(S -> NP * VP, 12), (NP -> Det N *) ....]
+# `Chart` - list of states [State1, State2, State3....]
+#                        [(S -> NP * VP, 12), (NP -> Det N *, 0) ....]
 
-# charts - list of charts
+# `charts` - list of charts
 # 0,1,2 - position of the chart (also `i` or `pos`)
 # [
-#   [0][(S -> NP * VP, 12), (NP -> Det N *) ....]                    
-#   [1][(S -> NP * VP, 12), (NP -> Det N *) ....]
-#   [2][(S -> NP * VP, 12), (NP -> Det N *) ....]
+#   charts[0]: [(S -> NP * VP, 0), (NP -> Det N *, 0) ....]                    
+#   charts[1]: [(VP -> Verb, 1), (NP -> Det N *) ....]
+#   charts[2]: [(S -> NP * VP, 12), (NP -> Det N *) ....]
 #   ...
 # ]
 
@@ -25,7 +25,7 @@ class State:
     def __init__(self, rule, dot=0, origin=0, action=""):
         self.rule = rule
         self.dot = dot
-        self.origin = origin
+        self.origin = origin #position of the chart where it comes from
         self.action = action
 
     def __eq__(self, other):
@@ -112,8 +112,8 @@ class EarleyParser:
                 current_chart = charts[i]
                 current_chart.add_state(new_state)
 
-    # true, if dot in the left from token, token==left_side
-    def check_left_side_in_right_side(self, origin_state, left_side):
+    # true, if dot stays behind the token in the origin state, where token == left_side
+    def check_left_side_in_right_side(self, origin_state, left_side): # True/False
         return origin_state.token_by_current_dot() == left_side
 
     def check_predict(self, state): # True/False
