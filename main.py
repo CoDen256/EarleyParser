@@ -1,6 +1,5 @@
 from grammar import Grammar, Rule
 from utils import display, normalize, load, build_tree
-from nltk.tree import Tree
 
 # `State`:  (S -> NP * VP, 12)
 #   - rule:     Rule(S, [NP, VP]), left_side = S, right_side = [NP, VP]                                            

@@ -18,18 +18,18 @@ def display(result, initial, render):
             result.pretty_print()
 
 
-def get_helper(grammar, state, start_token):
+def build_recursively(grammar, state, start_token):
     if all([grammar.is_terminal(token) for token in state.rule.right_side]):
         return Tree(state.rule.left_side, state.rule.right_side)
 
-    return Tree(state.rule.left_side, [get_helper(grammar, s, start_token) for s in state.completed_by])
+    return Tree(state.rule.left_side, [build_recursively(grammar, s, start_token) for s in state.completed_by])
 
 
 def build_tree(start_token, charts, grammar):
     for state in reversed(charts[-1].states):
         if state.is_complete() and state.rule.left_side == start_token and \
                 state.origin == 0:
-            return get_helper(grammar, state, start_token)
+            return build_recursively(grammar, state, start_token)
 
     return None
 

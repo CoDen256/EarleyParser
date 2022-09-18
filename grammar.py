@@ -1,11 +1,5 @@
 from collections import defaultdict
 
-# der gross lustig mann sieht die schoen klein frau
-# und die frau fuettert die hungrig hundin
-# aber die gut katze hoert die schlecht schlange,
-# weil der klein kater liebt der gross hund,
-# deshalb der schnell mann geht
-
 # non-terminals:    {A, B, C}
 # terminals:        {a, b, c}
 # tokens:           {a, A, b, B, c, C} = non-terminal U terminal
