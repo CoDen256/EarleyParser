@@ -1,5 +1,5 @@
 from grammar import Grammar, Rule
-from utils import display, normalize, load
+from utils import display, normalize, load, build_tree
 from nltk.tree import Tree
 
 # `State`:  (S -> NP * VP, 12)
@@ -165,28 +165,10 @@ def main():
             print("{0: <50} {1} ".format(str(state), " ".join(sentence.split()[i:])))
 
     ## build tree and visualize
-    tree = sub_tree(State.START, charts, grammar)
+    tree = build_tree(State.START, charts, grammar)
     display(tree, sentence, render=True)
 
-# def sub_tree(start_symbol, charts, grammar):
-#     start = Tree(symbol, [])
-#     trees, stack = [start], [start_symbol]
 
-#     while (stack):
-#         symbol = stack.pop()
-#         if (grammar.is_terminal(symbol) and symbol != State.START): 
-#             tree = Tree(tree.node, tree.children+[symbol])
-#         for chart in reversed(charts):
-#             for state in reversed(chart.states):
-#                 if (symbol == state.rule.left_side):
-#                     tree = trees.pop()
-#                     for child in state.rule.right_side:
-#                         stack.append(child)
-#                         new_tree = Tree()
-#                         #tree = Tree(tree.)
-#                         trees.append(new_tree)
-
-#     return result
 # startpoint in python
 if __name__ == "__main__":
     main()

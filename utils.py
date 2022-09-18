@@ -17,6 +17,8 @@ def display(result, initial, render):
             result.pretty_print()
 
 
+def build_tree
+
 def draw(result):
     while True:
         try:
